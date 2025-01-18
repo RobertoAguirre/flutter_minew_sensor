@@ -1,0 +1,1 @@
+../../../../.symlinks/plugins/minew_beacon_plus_flutter/ios/Classes/MinewBeaconPlusFlutterPlugin.h

@@ -1,0 +1,6 @@
+module minew_beacon_plus_flutter {
+  umbrella header "minew_beacon_plus_flutter-umbrella.h"
+
+  export *
+  module * { export * }
+}
