@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:minew_beacon_plus_flutter/minew_beacon_plus_flutter.dart';
 import 'dart:async';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io' show Platform;
 
 void main() {
   runApp(const MyApp());
@@ -40,9 +42,18 @@ class _BeaconScannerPageState extends State<BeaconScannerPage> {
   }
 
   void _setupBeaconPlugin() async {
-    // Asegurarse que el stream esté cerrado antes de iniciar
     await _subscription?.cancel();
     _subscription = null;
+
+    // Solicitar permisos
+    if (Platform.isAndroid) {
+      await Permission.bluetoothScan.request();
+      await Permission.bluetoothConnect.request();
+      await Permission.location.request();
+    } else if (Platform.isIOS) {
+      await Permission.bluetooth.request();
+      await Permission.location.request();
+    }
   }
 
   void _addDebugLog(String msg) {
@@ -100,6 +111,24 @@ class _BeaconScannerPageState extends State<BeaconScannerPage> {
   Future<void> _toggleScan() async {
     try {
       if (!_isScanning) {
+        // Verificar permisos antes de escanear
+        bool canProceed = true;
+        
+        if (!await Permission.bluetoothScan.isGranted) {
+          _addDebugLog('Permiso de escaneo Bluetooth no concedido');
+          canProceed = false;
+        }
+        
+        if (!await Permission.location.isGranted) {
+          _addDebugLog('Permiso de ubicación no concedido');
+          canProceed = false;
+        }
+
+        if (!canProceed) {
+          _addDebugLog('No se pueden obtener los permisos necesarios');
+          return;
+        }
+
         final started = await _minewBeaconPlugin.startScan();
         _addDebugLog('Escaneo iniciado: $started');
         if (started == true) {
